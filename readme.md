@@ -29,3 +29,23 @@ Beberapa poin penting yang terjadi di belakang layar:
 2. Protokol WebSocket: Penggunaan WebSockets (berbeda dengan HTTP biasa) menjaga koneksi ("pipa komunikasi") antara server dan tiap client tetap terbuka terus-menerus (persistent). Ini memungkinkan aliran data dua arah (mengirim dan menerima) yang sangat cepat kapan pun dibutuhkan.
 
 3. Peran Async Runtime: Kehadiran runtime asinkron (seperti Tokio di Rust) adalah kunci utama yang membuat server tetap berjalan ringan dan sangat responsif, meskipun harus me-l-routing pesan ke berbagai soket koneksi di waktu yang hampir bersamaan.
+
+## Experiment 2.2: Modifying the websocket port
+![alt text](image-4.png)
+![alt text](image-5.png)
+![alt text](image-6.png)
+![alt text](image-7.png)
+Pada eksperimen ini, saya ditugaskan untuk mengubah port komunikasi aplikasi dari yang semula menggunakan port 2000 menjadi 8080. Setelah saya melakukan modifikasi dan menjalankan ulang programnya, aplikasi chat tetap beroperasi dengan lancar. Proses pengiriman dan penerimaan pesan (broadcast) antar client via server berjalan normal tanpa ada kendala.
+
+Untuk mewujudkan perubahan ini, modifikasi mutlak harus dilakukan pada dua buah file yang mewakili kedua sisi koneksi jaringan, yaitu:
+
+1. Sisi Server (server.rs): Saya mengubah nilai string pada bagian TcpListener::bind menjadi "127.0.0.1:8080". Langkah ini bertujuan agar server menginstruksikan sistem operasi untuk membuka dan "mendengarkan" lalu lintas data masuk secara spesifik pada port 8080.
+
+2. Sisi Client (client.rs): Saya memodifikasi target URI pada ClientBuilder::from_uri menjadi "ws://127.0.0.1:8080". Hal ini berfungsi untuk mengarahkan client agar mengetuk pintu koneksi pada port yang tepat saat ingin menghubungi server.
+
+### Mengapa harus diubah di kedua sisi?
+
+Hal ini dikarenakan sebuah koneksi jaringan memerlukan kesepakatan titik temu (endpoint) yang identik antara pihak penerima dan pengirim. Jika saya hanya mengubah port di server saja, maka client akan tersesat karena terus mencoba menghubungi port lama (2000) yang sudah tidak melayani koneksi (Connection Refused).
+
+Selain itu, setelah meninjau kode yang ada, dapat dipastikan bahwa aplikasi ini tetap menggunakan protokol yang sama, yakni WebSocket. Definisi penggunaan protokol ini dapat dilihat secara jelas pada file client.rs, di mana alamat koneksinya diawali dengan scheme ws:// (menandakan koneksi WebSocket standar tanpa enkripsi TLS) pada parameter URI-nya.
+
