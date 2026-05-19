@@ -49,3 +49,24 @@ Hal ini dikarenakan sebuah koneksi jaringan memerlukan kesepakatan titik temu (e
 
 Selain itu, setelah meninjau kode yang ada, dapat dipastikan bahwa aplikasi ini tetap menggunakan protokol yang sama, yakni WebSocket. Definisi penggunaan protokol ini dapat dilihat secara jelas pada file client.rs, di mana alamat koneksinya diawali dengan scheme ws:// (menandakan koneksi WebSocket standar tanpa enkripsi TLS) pada parameter URI-nya.
 
+## Experiment 2.3: Small changes, add IP and Port
+
+![alt text](image-8.png)
+![alt text](image-9.png)
+![alt text](image-10.png)
+![alt text](image-11.png)
+
+### Penjelasan Modifikasi:
+Pada eksperimen ini, saya menambahkan informasi mengenai pengirim (berupa alamat IP dan nomor Port) ke dalam setiap pesan yang dikirimkan. Seperti yang terlihat pada gambar di atas, setiap pesan yang diterima oleh client kini memiliki format [IP]:[Port]: [Pesan].
+
+#### Detail Perubahan:
+
+Modifikasi ini dilakukan sepenuhnya pada sisi Server di file src/bin/server.rs. Perubahan spesifik berada di dalam loop penanganan koneksi (handle_connection), tepatnya pada bagian saat server menerima pesan teks dari ws_stream.next().await. Sebelum pesan tersebut diteruskan ke broadcast channel melalui tx.send(), saya melakukan pemformatan ulang string dengan menggabungkan variabel addr (informasi socket address pengirim) dengan isi pesan aslinya menggunakan makro format!.
+
+#### Mengapa modifikasi dilakukan di sisi Server?
+
+Ada dua alasan utama mengapa perubahan ini lebih logis dilakukan di server dibandingkan di client:
+
+1. Akses Data: Server adalah pusat kendali yang secara otomatis memiliki informasi alamat socket (addr) dari setiap client yang terhubung. Client tidak mengetahui alamat IP client lain secara langsung.
+
+2. Efisiensi: Dengan memformat pesan di server sebelum proses broadcast, server hanya perlu melakukan proses penggabungan string satu kali. Seluruh client yang terhubung akan langsung menerima pesan yang sudah "matang" beserta identitas pengirimnya. Ini jauh lebih efisien daripada membebankan setiap client untuk mengolah identitas pengirim secara terpisah.

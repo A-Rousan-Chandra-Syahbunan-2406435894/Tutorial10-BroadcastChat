@@ -21,7 +21,8 @@ async fn handle_connection(
                     if msg.is_text() {
                         let text = msg.as_text().unwrap();
                         println!("From client {addr:?} {text:?}");
-                        let _ = bcast_tx.send(text.to_string());
+                        let broadcast_msg = format!("{}: {}", addr, text); // Kita bungkus teksnya pake IP:Port
+                        let _ = bcast_tx.send(broadcast_msg);
                     }
                 } else {
                     break;
@@ -50,6 +51,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let (socket, addr) = listener.accept().await?;
         println!("New connection from {addr:?}");
         let bcast_tx = bcast_tx.clone();
+        
         
         tokio::spawn(async move {
             // Wrap the raw TCP stream into a websocket.

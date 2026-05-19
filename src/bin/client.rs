@@ -22,7 +22,7 @@ async fn main() -> Result<(), tokio_websockets::Error> {
             incoming = ws_stream.next() => {
                 if let Some(Ok(msg)) = incoming {
                     if msg.is_text() {
-                        println!("From server: {}", msg.as_text().unwrap());
+                        println!("Rousan's Computer - From server: {}", msg.as_text().unwrap());
                     }
                 } else {
                     break;
